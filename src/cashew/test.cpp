@@ -3,7 +3,12 @@
 
 int main(int argc, char **argv) {
   // Read input file
-  FILE *f = fopen(argv[1], "r");
+#ifdef _MSC_VER
+    FILE *f;
+    fopen_s(&f, argv[1], "r");
+#else
+    FILE *f = fopen(argv[1], "r");
+#endif
   assert(f);
   fseek(f, 0, SEEK_END);
   int size = ftell(f);

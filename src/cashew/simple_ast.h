@@ -599,7 +599,11 @@ struct JSPrinter {
     maybeSpace(*s);
     int len = strlen(s);
     ensure(len+1);
+#ifdef _MSC_VER
+    strcpy_s(buffer + used, len + 1, s);
+#else
     strcpy(buffer + used, s);
+#endif
     used += len;
   }
 
@@ -832,7 +836,11 @@ struct JSPrinter {
             format[5] = 0;
           }
           snprintf(buffer, BUFFERSIZE-1, format, d);
+#ifdef _MSC_VER
+          sscanf_s(buffer, "%lf", &temp);
+#else
           sscanf(buffer, "%lf", &temp);
+#endif
           //errv("%.18f, %.18e   =>   %s   =>   %.18f, %.18e   (%d), ", d, d, buffer, temp, temp, temp == d);
           if (temp == d) break;
         }
@@ -845,15 +853,27 @@ struct JSPrinter {
           snprintf(buffer, BUFFERSIZE-1, asHex ? "0x%llx" : "%llu", uu);
           if (asHex) {
             unsigned long long tempULL;
+#ifdef _MSC_VER
+            sscanf_s(buffer, "%llx", &tempULL);
+#else
             sscanf(buffer, "%llx", &tempULL);
+#endif
             temp = (double)tempULL;
           } else {
-            sscanf(buffer, "%lf", &temp);
+#ifdef _MSC_VER
+              sscanf_s(buffer, "%lf", &temp);
+#else
+              sscanf(buffer, "%lf", &temp);
+#endif
           }
         } else {
           // too large for a machine integer, just use floats
           snprintf(buffer, BUFFERSIZE-1, e ? "%e" : "%.0f", d); // even on integers, e with a dot is useful, e.g. 1.2e+200
+#ifdef _MSC_VER
+          sscanf_s(buffer, "%lf", &temp);
+#else
           sscanf(buffer, "%lf", &temp);
+#endif
         }
         //errv("%.18f, %.18e   =>   %s   =>   %.18f, %.18e, %llu   (%d)\n", d, d, buffer, temp, temp, uu, temp == d);
       }

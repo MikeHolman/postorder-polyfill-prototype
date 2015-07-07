@@ -1258,7 +1258,7 @@ NumLit::NumLit(Module& m, const AstNode& n)
   } else if (n.is<PrefixNode>()) {
     const AstNode& op = n.as<PrefixNode>().kid;
     if (op.is<IntNode>()) {
-      u.u32_ = -op.as<IntNode>().u32;
+      u.u32_ = -int(op.as<IntNode>().u32);
       if (u.u32_ == 0) {
         u.f64_ = -0;
         asmjs_type_ = AsmJSType::Double;
@@ -3141,9 +3141,10 @@ try
   vector<uint8_t> out_bytes(out_stream.tellp());
   out_stream.seekg(0);
   out_stream.read((char*)out_bytes.data(), out_bytes.size());
+#ifdef CHECKED_OUTPUT_SIZE
   uint32_t unpacked_size = asmjs::calculate_unpacked_size(out_bytes.data());
   asmjs::patch_unpacked_size(out_stream, unpacked_size);
-
+#endif
   return 0;
 }
 catch(const ios::failure& err)

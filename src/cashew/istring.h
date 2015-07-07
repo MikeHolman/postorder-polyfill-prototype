@@ -52,7 +52,11 @@ struct IString {
       auto existing = strings->find(s);
       if (existing == strings->end()) {
         char *copy = (char*)malloc(strlen(s)+1); // XXX leaked
+#ifdef _MSC_VER
+        strcpy_s(copy, strlen(s) + 1, s);
+#else
         strcpy(copy, s);
+#endif
         s = copy;
       } else {
         s = *existing;
@@ -123,7 +127,11 @@ public:
   IStringSet(const char *init) { // comma-delimited list
     int size = strlen(init);
     char *curr = new char[size+1]; // leaked!
+#ifdef _MSC_VER
+    strcpy_s(curr, size + 1, init);
+#else
     strcpy(curr, init);
+#endif
     while (1) {
       char *end = strchr(curr, ' ');
       if (end) *end = 0;
