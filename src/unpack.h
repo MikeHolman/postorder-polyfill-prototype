@@ -1,5 +1,4 @@
-#ifndef unpack_h_
-#define unpack_h_
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -19,4 +18,3 @@ void unpack(const uint8_t* packed, const char* cb_name, uint32_t unpacked_size, 
 #endif
 
 }  // namespace asmjs
-#endif  // unpack_h_
