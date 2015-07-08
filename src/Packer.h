@@ -15,3 +15,4 @@ namespace asmjs
 #include "pack-asmjs.h"
 #include "Module.h"
 #include "NumLit.h"
+#include "AstBuilder.h"

@@ -239,6 +239,7 @@ namespace asmjs
         Expr expr;
     };
 
+
     struct BinaryNode : AstNode
     {
         static const Enum Which = Binary;
@@ -680,4 +681,7 @@ namespace asmjs
         operator AstNode*() const { return ptr; }
     };
 
+    bool is_double_coerced_call(const PrefixNode& prefix);
+
+    bool is_int_coerced_call(const BinaryNode& binary);
 }
