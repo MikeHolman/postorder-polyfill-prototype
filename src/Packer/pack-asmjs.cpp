@@ -1180,56 +1180,57 @@ write_bitwise(Module& m, Function& f, const BinaryNode& binary, Ctx ctx)
         return;
     }
 
-    m.write().code(binary.expr);
     write_expr(m, f, binary.lhs);
     write_expr(m, f, binary.rhs);
+    m.write().code(binary.expr);
 }
 
 void
 write_index(Module& m, Function& f, const IndexNode& index)
 {
     if (index.offset > 0)
+    {
         m.write().imm_u32(index.offset);
-
+    }
     if (index.constant)
+    {
         write_num_lit(m, f, NumLit(m, *index.index), m.heap_view(index.array.as<NameNode>().str).shift);
+    }
     else
+    {
         write_expr(m, f, *index.index);
+    }
 }
 
 void
 write_assign(Module& m, Function& f, const BinaryNode& binary, Ctx ctx)
 {
     uint32_t index = binary.lhs.as<NameNode>().index;
-    if (ctx == Ctx::Expr) {
-        m.write().code(binary.expr);
-        m.write().imm_u32(index);
-    }
-    else {
-        if (binary.stmt_with_imm != StmtWithImm::Bad && index < ImmLimit) {
-            m.write().code(binary.stmt_with_imm, index);
-        }
-        else {
-            m.write().code(binary.stmt);
-            m.write().imm_u32(index);
-        }
-    }
+    m.write().imm_u32(index);
     write_expr(m, f, binary.rhs);
+    m.write().code(binary.expr);
 }
 
 void
 write_store(Module& m, Function& f, const BinaryNode& binary, Ctx ctx)
 {
     // The simple case
-    if (ctx == Ctx::Stmt || binary.store_rhs_conv.is_bad()) {
-        if (ctx == Ctx::Stmt)
-            m.write().code(binary.stmt);
-        else
-            m.write().code(binary.expr);
+    if (ctx == Ctx::Stmt || binary.store_rhs_conv.is_bad())
+    {
         write_index(m, f, binary.lhs.as<IndexNode>());
-        if (!binary.store_rhs_conv.is_bad())
-            m.write().code(binary.store_rhs_conv);
         write_expr(m, f, binary.rhs);
+        if (ctx == Ctx::Stmt)
+        {
+            m.write().code(binary.stmt);
+        }
+        else
+        {
+            m.write().code(binary.expr);
+        }
+        if (!binary.store_rhs_conv.is_bad())
+        {
+            m.write().code(binary.store_rhs_conv);
+        }
         return;
     }
 
@@ -1240,30 +1241,34 @@ write_store(Module& m, Function& f, const BinaryNode& binary, Ctx ctx)
 
     Type val_type;
     uint32_t temp_local_index;
-    if (binary.store_rhs_conv == F64::FromF32) {
+    if (binary.store_rhs_conv == F64::FromF32)
+    {
         val_type = Type::F32;
         temp_local_index = f.f32_temp();
     }
-    else {
+    else
+    {
         assert(binary.store_rhs_conv == F32::FromF64);
         val_type = Type::F64;
         temp_local_index = f.f64_temp();
     }
 
-    m.write().code(type_switch(val_type, I32::Bad, F32::Comma, F64::Comma));
-    m.write().code(binary.store_rhs_conv.type());
-
     // comma lhs
-    m.write().code(binary.expr);
     write_index(m, f, binary.lhs.as<IndexNode>());
-    m.write().code(binary.store_rhs_conv);
-    m.write().code(type_switch(val_type, I32::Bad, F32::SetLoc, F64::SetLoc));
+    m.write().code(binary.expr);
     m.write().imm_u32(temp_local_index);
-    write_expr(m, f, binary.rhs);
 
     // comma rhs
-    m.write().code(type_switch(val_type, I32::Bad, F32::GetLoc, F64::GetLoc));
+    write_expr(m, f, binary.rhs);
+    m.write().code(binary.store_rhs_conv);
+    m.write().code(type_switch(val_type, I32::Bad, F32::SetLoc, F64::SetLoc));
+
     m.write().imm_u32(temp_local_index);
+    m.write().code(type_switch(val_type, I32::Bad, F32::GetLoc, F64::GetLoc));
+
+    // TODO (Mike): understand these semantics
+    m.write().code(type_switch(val_type, I32::Bad, F32::Comma, F64::Comma));
+    m.write().code(binary.store_rhs_conv.type());
 }
 
 void
@@ -1281,16 +1286,17 @@ write_binary(Module& m, Function& f, const BinaryNode& binary, Ctx ctx)
         break;
     case BinaryNode::Comma:
         assert(ctx == Ctx::Expr);
-        m.write().code(binary.expr);
-        m.write().code(binary.comma_lhs_type);
         write_expr(m, f, binary.lhs);
         write_expr(m, f, binary.rhs);
+        m.write().code(binary.expr);
+        // TODO (Mike): type information is going to be messed up
+        m.write().code(binary.comma_lhs_type);
         break;
     case BinaryNode::Generic:
         assert(ctx == Ctx::Expr);
-        m.write().code(binary.expr);
         write_expr(m, f, binary.lhs);
         write_expr(m, f, binary.rhs);
+        m.write().code(binary.expr);
         break;
     }
 }
@@ -1298,42 +1304,53 @@ write_binary(Module& m, Function& f, const BinaryNode& binary, Ctx ctx)
 void
 write_name(Module& m, Function& f, const NameNode& name)
 {
-    if (!name.expr_with_imm.is_bad() && name.index < ImmLimit) {
+    if (!name.expr_with_imm.is_bad() && name.index < ImmLimit)
+    {
         m.write().code(name.expr_with_imm, name.index);
     }
-    else if (name.expr.is_bad()) {
+    else if (name.expr.is_bad())
+    {
         write_num_lit(m, f, NumLit(m.stdlib_double(name.str)));
     }
-    else {
-        m.write().code(name.expr);
+    else
+    {
         m.write().imm_u32(name.index);
+        m.write().code(name.expr);
     }
 }
 
 void
 write_prefix(Module& m, Function& f, const PrefixNode& prefix, Ctx ctx)
 {
-    if (is_double_coerced_call(prefix)) {
+    // TODO (Mike): what is up with prefixes?
+    if (is_double_coerced_call(prefix))
+    {
         if (!prefix.expr.is_bad())
+        {
             m.write().code(prefix.expr);
+        }
         write_call(m, f, prefix.kid.as<CallNode>(), ctx);
         return;
     }
 
     assert(ctx == Ctx::Expr);
 
-    if (prefix.expr.is_bad())
-        assert(prefix.op.equals("+") || prefix.op.equals("~"));
-    else
-        m.write().code(prefix.expr);
+    assert(prefix.expr.is_bad() || !(prefix.op.equals("+") || prefix.op.equals("~")));
+
     write_expr(m, f, prefix.kid);
+
+    if (!prefix.expr.is_bad())
+    {
+        m.write().code(prefix.expr);
+    }
+
 }
 
 void
 write_ternary(Module& m, Function& f, const TernaryNode& ternary)
 {
-    m.write().code(ternary.expr);
     write_expr(m, f, ternary.cond);
+    m.write().code(ternary.expr);
     write_expr(m, f, ternary.lhs);
     write_expr(m, f, ternary.rhs);
 }
@@ -1341,43 +1358,67 @@ write_ternary(Module& m, Function& f, const TernaryNode& ternary)
 void
 write_call(Module& m, Function& f, const CallNode& call, Ctx ctx)
 {
-    switch (call.kind) {
-    case CallNode::Import: {
-        if (ctx == Ctx::Expr)
-            m.write().code(call.expr);
-        else
-            m.write().code(call.stmt);
+    if (call.kind == CallNode::Indirect)
+    {
+        auto& index = call.callee.as<IndexNode>();
+        write_expr(m, f, index.index->as<BinaryNode>().lhs);
+    }
+    for (AstNode* arg = call.first; arg; arg = arg->next)
+    {
+        write_expr(m, f, *arg);
+    }
+    switch (call.kind)
+    {
+    case CallNode::Import:
+    {
         auto& func_imp_sig = m.func_imp(call.callee.as<NameNode>().str).sigs[call.import_preindex];
         m.write().imm_u32(func_imp_sig.func_imp_sig_index);
         assert(call.compute_length() == m.sig(func_imp_sig.sig_index).args.size());
+        if (ctx == Ctx::Expr)
+        {
+            m.write().code(call.expr);
+        }
+        else
+        {
+            m.write().code(call.stmt);
+        }
         break;
     }
-    case CallNode::Internal: {
-        if (ctx == Ctx::Expr)
-            m.write().code(call.expr);
-        else
-            m.write().code(call.stmt);
+    case CallNode::Internal:
+    {
         auto func_index = m.func_index(call.callee.as<NameNode>().str);
         m.write().imm_u32(func_index);
         assert(call.compute_length() == m.func(func_index).sig().args.size());
+        if (ctx == Ctx::Expr)
+        {
+            m.write().code(call.expr);
+        }
+        else
+        {
+            m.write().code(call.stmt);
+        }
         break;
     }
-    case CallNode::Indirect: {
-        if (ctx == Ctx::Expr)
-            m.write().code(call.expr);
-        else
-            m.write().code(call.stmt);
+    case CallNode::Indirect:
+    {
         auto& index = call.callee.as<IndexNode>();
         auto func_ptr_tbl_i = m.func_ptr_table_index(index.array.as<NameNode>().str);
         m.write().imm_u32(func_ptr_tbl_i);
-        write_expr(m, f, index.index->as<BinaryNode>().lhs);
         assert(call.compute_length() == m.sig(m.func_ptr_table(func_ptr_tbl_i).sig_index).args.size());
+        if (ctx == Ctx::Expr)
+        {
+            m.write().code(call.expr);
+        }
+        else
+        {
+            m.write().code(call.stmt);
+        }
         break;
     }
     case CallNode::NaryBuiltin:
         assert(ctx == Ctx::Expr);
-        m.write().code(call.expr);
         m.write().imm_u32(call.compute_length());
+        m.write().code(call.expr);
         break;
     case CallNode::FixedArityBuiltin:
         assert(ctx == Ctx::Expr);
@@ -1385,33 +1426,35 @@ write_call(Module& m, Function& f, const CallNode& call, Ctx ctx)
         break;
     case CallNode::Fround:
         assert(call.compute_length() == 1);
-        if (call.expr.is_bad()) {
-            if (call.first->is<CallNode>()) {
+        if (call.expr.is_bad())
+        {
+            if (call.first->is<CallNode>())
+            {
+                // TODO (Mike): verify this
                 write_call(m, f, call.first->as<CallNode>(), ctx);
                 return;
             }
         }
-        else {
+        else
+        {
             m.write().code(call.expr);
         }
         break;
     }
-
-    for (AstNode* arg = call.first; arg; arg = arg->next)
-        write_expr(m, f, *arg);
 }
 
 void
 write_load(Module& m, Function& f, const IndexNode& index)
 {
-    m.write().code(index.expr);
     write_index(m, f, index);
+    m.write().code(index.expr);
 }
 
 void
-    write_expr(Module& m, Function& f, const AstNode& expr)
+write_expr(Module& m, Function& f, const AstNode& expr)
 {
-    if (NumLit::is(m, expr)) {
+    if (NumLit::is(m, expr))
+    {
         write_num_lit(m, f, NumLit(m, expr));
     }
     else {
@@ -1443,9 +1486,11 @@ void
 void
 write_return(Module& m, Function& f, const ReturnNode& ret)
 {
-    m.write().code(Stmt::Ret);
     if (ret.expr)
+    {
         write_expr(m, f, *ret.expr);
+    }
+    m.write().code(Stmt::Ret);
 }
 
 void
@@ -1453,8 +1498,11 @@ write_stmt_list(Module& m, Function& f, const AstNode* stmts)
 {
     uint32_t num_stmts = 0;
     for (const AstNode* p = stmts; p; p = p->next)
+    {
         num_stmts++;
+    }
 
+    // TODO (Mike): do we need to write this?
     m.write().imm_u32(num_stmts);
     for (const AstNode* n = stmts; n; n = n->next)
         write_stmt(m, f, *n);
@@ -1463,6 +1511,7 @@ write_stmt_list(Module& m, Function& f, const AstNode* stmts)
 void
 write_block(Module& m, Function& f, const BlockNode& block)
 {
+    // TODO (Mike): what are blocks needed for?
     m.write().code(Stmt::Block);
     write_stmt_list(m, f, block.first);
 }
@@ -1470,15 +1519,17 @@ write_block(Module& m, Function& f, const BlockNode& block)
 void
 write_if(Module& m, Function& f, const IfNode& i)
 {
-    if (i.if_false) {
-        m.write().code(Stmt::IfElse);
+    if (i.if_false)
+    {
         write_expr(m, f, i.cond);
+        m.write().code(Stmt::IfElse);
         write_stmt(m, f, i.if_true);
         write_stmt(m, f, *i.if_false);
     }
-    else {
-        m.write().code(Stmt::IfThen);
+    else
+    {
         write_expr(m, f, i.cond);
+        m.write().code(Stmt::IfThen);
         write_stmt(m, f, i.if_true);
     }
 }
@@ -1486,22 +1537,24 @@ write_if(Module& m, Function& f, const IfNode& i)
 void
 write_while(Module& m, Function& f, const WhileNode& w)
 {
-    m.write().code(Stmt::While);
     write_expr(m, f, w.cond);
+    m.write().code(Stmt::While);
     write_stmt(m, f, w.body);
 }
 
 void
 write_do(Module& m, Function& f, const DoNode& d)
 {
-    m.write().code(Stmt::Do);
     write_stmt(m, f, d.body);
     write_expr(m, f, d.cond);
+    m.write().code(Stmt::Do);
+    // TODO (Mike): is this ok?
 }
 
 void
 write_label(Module& m, Function& f, const LabelNode& l)
 {
+    // TODO (Mike): is a label statement really needed in encoding?
     m.write().code(Stmt::Label);
     f.push_label(l.str);
     write_stmt(m, f, l.stmt);
@@ -1511,7 +1564,8 @@ write_label(Module& m, Function& f, const LabelNode& l)
 void
 write_break(Module& m, Function& f, const BreakNode& b)
 {
-    if (!b.str) {
+    if (!b.str)
+    {
         m.write().code(Stmt::Break);
         return;
     }
@@ -1523,7 +1577,8 @@ write_break(Module& m, Function& f, const BreakNode& b)
 void
 write_continue(Module& m, Function& f, const ContinueNode& c)
 {
-    if (!c.str) {
+    if (!c.str)
+    {
         m.write().code(Stmt::Continue);
         return;
     }
@@ -1535,22 +1590,28 @@ write_continue(Module& m, Function& f, const ContinueNode& c)
 void
 write_switch(Module& m, Function& f, const SwitchNode& s)
 {
+    // TODO (Mike): this probably needs work
+    write_expr(m, f, s.expr);
     m.write().code(Stmt::Switch);
     m.write().imm_u32(s.compute_length());
-    write_expr(m, f, s.expr);
     bool wrote_default = false;
-    for (const CaseNode* c = s.first; c; c = c->next) {
-        if (c->label) {
-            if (!c->first) {
+    for (const CaseNode* c = s.first; c; c = c->next)
+    {
+        if (c->label)
+        {
+            if (!c->first)
+            {
                 m.write().code(SwitchCase::Case0);
                 m.write().imm_s32(NumLit(m, *c->label).int32());
             }
-            else if (c->first == c->last) {
+            else if (c->first == c->last)
+            {
                 m.write().code(SwitchCase::Case1);
                 m.write().imm_s32(NumLit(m, *c->label).int32());
                 write_stmt(m, f, c->first->stmt);
             }
-            else {
+            else
+            {
                 m.write().code(SwitchCase::CaseN);
                 m.write().imm_s32(NumLit(m, *c->label).int32());
                 m.write().imm_u32(c->compute_length());
