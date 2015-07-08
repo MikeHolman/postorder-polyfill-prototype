@@ -134,6 +134,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AstMemory.cpp" />
+    <ClCompile Include="Module.cpp" />
+    <ClCompile Include="NumLit.cpp" />
+    <ClCompile Include="Out.cpp" />
     <ClCompile Include="pack-asmjs.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -143,6 +147,14 @@
     <ProjectReference Include="Library.vcxproj">
       <Project>{5aeaf62b-3698-4631-ac4f-a3f971358385}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AstMemory.h" />
+    <ClInclude Include="Module.h" />
+    <ClInclude Include="NumLit.h" />
+    <ClInclude Include="Out.h" />
+    <ClInclude Include="pack-asmjs.h" />
+    <ClInclude Include="Packer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

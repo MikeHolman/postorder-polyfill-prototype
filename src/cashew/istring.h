@@ -125,7 +125,7 @@ class IStringSet : public std::unordered_set<IString> {
 public:
   IStringSet() {}
   IStringSet(const char *init) { // comma-delimited list
-    int size = strlen(init);
+    size_t size = strlen(init);
     char *curr = new char[size+1]; // leaked!
 #ifdef _MSC_VER
     strcpy_s(curr, size + 1, init);

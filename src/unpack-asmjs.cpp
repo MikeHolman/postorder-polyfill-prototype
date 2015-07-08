@@ -36,7 +36,7 @@ try
     }
 
     // Unpack .asm file into utf8 chars.
-    uint32_t unpacked_size = asmjs::unpacked_size(in_bytes.data(), name);
+    size_t unpacked_size = asmjs::unpacked_size(in_bytes.data(), name);
     vector<uint8_t> out_bytes(unpacked_size);
     asmjs::unpack(in_bytes.data(), name, out_bytes.size(), out_bytes.data());
 

@@ -96,7 +96,7 @@ namespace asmjs {
 #else
 # ifndef NDEBUG
         uint8_t* const begin_;
-        const uint32_t unpacked_size_;
+        const size_t unpacked_size_;
 # endif
 
         void inline check_write(size_t bytes_to_write)
@@ -110,8 +110,8 @@ namespace asmjs {
         // variable names than necessary. (Since the goal is speed and non-ASCII identifiers often trigger
         // slow paths in JS tokenizers, only consider the ASCII subset of UTF-8.) This function maps
         // indices surjectively onto the enumeration of valid ASCII JS identifiers.
-        template <uint32_t FirstCharRange>
-        void indexed_name(uint32_t i)
+        template <size_t FirstCharRange>
+        void indexed_name(size_t i)
         {
             // Take advantage of power-of-two length of iden_chars to replace slow integer division and
             // modulus operations with fast bitwise operations.
@@ -167,7 +167,7 @@ namespace asmjs {
         Utf8Writer() : cur_(nullptr), limit_(nullptr) {}
         uint32_t finish() { return cur_ - bytes_.data(); }
 #else
-        Utf8Writer(uint32_t sz, uint8_t* begin)
+        Utf8Writer(size_t sz, uint8_t* begin)
             : cur_(begin)
 #ifndef NDEBUG
             , begin_(begin)
@@ -308,7 +308,7 @@ namespace asmjs {
             *cur_++ = 'a' + unsigned(i);
         }
 
-        void local_name(uint32_t i)
+        void local_name(size_t i)
         {
             indexed_name<FirstCharRangeMinusDollar>(i + uint32_t(HotStdLib::Count));
         }
@@ -321,14 +321,14 @@ namespace asmjs {
             *cur_++ = 'a' + unsigned(i);
         }
 
-        void global_name(uint32_t i)
+        void global_name(size_t i)
         {
             check_write(1);
             *cur_++ = '$';
-            indexed_name<NextCharRange>(i + uint32_t(StdLib::Count));
+            indexed_name<NextCharRange>(i + size_t(StdLib::Count));
         }
 
-        void label_name(uint32_t i)
+        void label_name(size_t i)
         {
             indexed_name<FirstCharRange>(i);
         }
@@ -395,7 +395,7 @@ namespace asmjs {
         vector<uint32_t> elems;
     };
 
-    uint32_t
+    size_t
         cb_name_len(const char* cb_name)
     {
         if (!cb_name)
@@ -409,12 +409,12 @@ namespace asmjs {
         vector<uint32_t> i32s_;
         vector<float> f32s_;
         vector<double> f64s_;
-        uint32_t num_func_imps_;
+        size_t num_func_imps_;
         vector<FuncImportSignature> func_imp_sigs_;
         vector<Type> global_types_;
-        uint32_t func_name_base_;
+        size_t func_name_base_;
         vector<uint32_t> func_sigs_;
-        uint32_t func_ptr_table_name_base_;
+        size_t func_ptr_table_name_base_;
         vector<FuncPtrTable> func_ptr_tables_;
 
         uint32_t num_labels_;
@@ -435,7 +435,7 @@ namespace asmjs {
             (void)read.fixed_width<uint32_t>();
         }
 #else
-        State(const uint8_t* in, const char* cb_name, uint32_t out_size, uint8_t* out)
+        State(const uint8_t* in, const char* cb_name, size_t out_size, uint8_t* out)
             : num_labels_(0)
             , read(in)
             , write(out_size, out)
@@ -477,19 +477,19 @@ namespace asmjs {
             func_ptr_tables_ = move(f);
         }
 
-        void write_func_imp_name(uint32_t i)
+        void write_func_imp_name(size_t i)
         {
             write.global_name(i);
         }
-        void write_global_name(uint32_t i)
+        void write_global_name(size_t i)
         {
             write.global_name(num_func_imps_ + i);
         }
-        void write_func_name(uint32_t i)
+        void write_func_name(size_t i)
         {
             write.global_name(func_name_base_ + i);
         }
-        void write_func_ptr_table_name(uint32_t i)
+        void write_func_ptr_table_name(size_t i)
         {
             write.global_name(func_ptr_table_name_base_ + i);
         }
@@ -1372,7 +1372,7 @@ namespace asmjs {
         call_args(State& s, const vector<Type>& args)
     {
         s.write.ascii('(');
-        if (uint32_t num_args = args.size()) {
+        if (size_t num_args = args.size()) {
             for (uint32_t i = 0;;) {
                 switch (args[i]) {
                 case Type::I32: expr<RType::I32>(s, reject_same(Prec::Comma)); break;
@@ -1478,7 +1478,7 @@ namespace asmjs {
         s.write.ascii('[');
         expr<RType::I32>(s, accept_same(Prec::BitAnd), Ctx::ToI32);
         s.write.ascii('&');
-        s.write.uint32(func_ptr_table.elems.size() - 1);
+        s.write.uint32(static_cast<uint32_t>(func_ptr_table.elems.size()) - 1);
         s.write.ascii(']');
         call_args(s, s.sig(func_ptr_table.sig_index).args);
     }
@@ -1567,7 +1567,7 @@ namespace asmjs {
         s.write_func_imp_name(func_imp_sig.func_imp_index);
         s.write.ascii('(');
         auto& args = s.sig(func_imp_sig.sig_index).args;
-        if (uint32_t num_args = args.size()) {
+        if (size_t num_args = args.size()) {
             for (uint32_t i = 0;;) {
                 switch (args[i]) {
                 case Type::I32: signed_expr(s, reject_same(Prec::Comma), Signed); break;
@@ -2210,16 +2210,16 @@ namespace asmjs {
         uint32_t num_vars = num_i32_vars + num_f32_vars + num_f64_vars;
         if (num_vars > 0) {
             s.write.ascii("var ");
-            uint32_t local_index = s.cur_local_types().size();
-            uint32_t num_locals = local_index + num_vars;
-            for (uint32_t i = 0; i < num_i32_vars; i++) {
+            size_t local_index = s.cur_local_types().size();
+            size_t num_locals = local_index + num_vars;
+            for (size_t i = 0; i < num_i32_vars; i++) {
                 s.write.local_name(local_index++);
                 s.cur_local_types().push_back(Type::I32);
                 s.write.ascii("=0");
                 if (local_index != num_locals)
                     s.write.ascii(',');
             }
-            for (uint32_t i = 0; i < num_f32_vars; i++) {
+            for (size_t i = 0; i < num_f32_vars; i++) {
                 s.write.local_name(local_index++);
                 s.cur_local_types().push_back(Type::F32);
                 s.write.ascii('=');
@@ -2228,7 +2228,7 @@ namespace asmjs {
                 if (local_index != num_locals)
                     s.write.ascii(',');
             }
-            for (uint32_t i = 0; i < num_f64_vars; i++) {
+            for (size_t i = 0; i < num_f64_vars; i++) {
                 s.write.local_name(local_index++);
                 s.cur_local_types().push_back(Type::F64);
                 s.write.ascii("=0.");
@@ -2260,20 +2260,20 @@ namespace asmjs {
     void
         function_definition_section(State& s)
     {
-        uint32_t num_funcs = s.num_funcs();
-        for (uint32_t func_index = 0; func_index < num_funcs; func_index++)
+        size_t num_funcs = s.num_funcs();
+        for (size_t func_index = 0; func_index < num_funcs; func_index++)
             function_definition(s, func_index);
     }
 
     void
         write_function_pointer_tables(State& s)
     {
-        for (uint32_t func_ptr_tbl_i = 0; func_ptr_tbl_i < s.num_func_ptr_tables(); func_ptr_tbl_i++) {
+        for (size_t func_ptr_tbl_i = 0; func_ptr_tbl_i < s.num_func_ptr_tables(); func_ptr_tbl_i++) {
             s.write.ascii("var ");
             s.write_func_ptr_table_name(func_ptr_tbl_i);
             s.write.ascii("=[");
             auto& func_ptr_table = s.func_ptr_table(func_ptr_tbl_i);
-            for (uint32_t elem_i = 0, num_elems = func_ptr_table.elems.size();;) {
+            for (size_t elem_i = 0, num_elems = func_ptr_table.elems.size();;) {
                 s.write_func_name(func_ptr_table.elems[elem_i]);
                 if (++elem_i == num_elems)
                     break;
@@ -2435,7 +2435,7 @@ asmjs::has_magic_number(const uint8_t* packed)
     return in.fixed_width<uint32_t>() == MagicNumber;
 }
 
-uint32_t
+size_t
 asmjs::unpacked_size(const uint8_t* packed, const char* cb_name)
 {
     In in(packed);
@@ -2445,7 +2445,7 @@ asmjs::unpacked_size(const uint8_t* packed, const char* cb_name)
 }
 
 void
-asmjs::unpack(const uint8_t* packed, const char* cb_name, uint32_t unpacked_size, uint8_t* unpacked)
+asmjs::unpack(const uint8_t* packed, const char* cb_name, size_t unpacked_size, uint8_t* unpacked)
 {
     State s(packed, cb_name, unpacked_size, unpacked);
     unpack(s, cb_name);

@@ -5,6 +5,14 @@
 #include <cstdint>
 #include <cassert>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
+#include <stdexcept>
+#include <iostream>
+#include <fstream>
+#include <memory>
+
+#define UNREACHED false
 
 namespace asmjs {
 
@@ -277,7 +285,7 @@ namespace asmjs {
     };
 
     inline VarTypes operator|(VarTypes lhs, VarTypes rhs) { return VarTypes(uint8_t(lhs) | uint8_t(rhs)); }
-    inline bool operator&(VarTypes lhs, VarTypes rhs) { return bool(uint8_t(lhs) & uint8_t(rhs)); }
+    inline uint8_t operator&(VarTypes lhs, VarTypes rhs) { return uint8_t(lhs) & uint8_t(rhs); }
 
     enum class VarTypesWithImm : uint8_t
     {
@@ -490,7 +498,7 @@ namespace asmjs {
         bool operator!=(const Signature& rhs) const { return !(*this == rhs); }
 
         struct Hash {
-            bool operator()(const Signature &sig) const {
+            uint8_t operator()(const Signature &sig) const {
                 static_assert(sizeof(Type) == 1 && sizeof(RType) == 1, "Shift more");
                 uint32_t h = uint8_t(sig.ret);
                 for (Type t : sig.args)
