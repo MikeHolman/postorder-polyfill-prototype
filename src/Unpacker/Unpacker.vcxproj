@@ -19,10 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{60055510-0EA1-4292-8B33-893A7ED128BB}</ProjectGuid>
-    <RootNamespace>Packer</RootNamespace>
+    <ProjectGuid>{0E84F543-0EB0-4EDE-AC70-D43D7229BA32}</ProjectGuid>
+    <RootNamespace>Unpacker</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>Packer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -70,19 +69,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Unpacker\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Unpacker\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Unpacker\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Unpacker\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -134,29 +133,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AstBuilder.cpp" />
-    <ClCompile Include="AstMemory.cpp" />
-    <ClCompile Include="Module.cpp" />
-    <ClCompile Include="NumLit.cpp" />
-    <ClCompile Include="Out.cpp" />
-    <ClCompile Include="pack-asmjs.cpp" />
+    <ClCompile Include="unpack-asmjs.cpp" />
+    <ClCompile Include="unpack.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="cashew\Cashew.vcxproj">
+    <ClInclude Include="unpack.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cashew\Cashew.vcxproj">
       <Project>{ac7cefae-4e50-4aed-ae24-b7ee924e0b1f}</Project>
     </ProjectReference>
-    <ProjectReference Include="Library.vcxproj">
+    <ProjectReference Include="..\Library\Library.vcxproj">
       <Project>{5aeaf62b-3698-4631-ac4f-a3f971358385}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AstBuilder.h" />
-    <ClInclude Include="AstMemory.h" />
-    <ClInclude Include="Module.h" />
-    <ClInclude Include="NumLit.h" />
-    <ClInclude Include="Out.h" />
-    <ClInclude Include="pack-asmjs.h" />
-    <ClInclude Include="Packer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

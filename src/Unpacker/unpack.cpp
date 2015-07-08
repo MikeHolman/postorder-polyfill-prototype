@@ -2,7 +2,7 @@
 
 #include "unpack.h"
 
-#include "shared.h"
+#include "../Library/shared.h"
 
 #include <algorithm>
 #include <cstring>

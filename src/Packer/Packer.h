@@ -7,8 +7,8 @@ namespace asmjs
     class NumLit;
 }
 
-#include "shared.h"
-#include "cashew/parser.h"
+#include "../Library/shared.h"
+#include "../cashew/parser.h"
 
 #include "AstMemory.h"
 #include "Out.h"

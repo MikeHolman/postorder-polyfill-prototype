@@ -19,9 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5AEAF62B-3698-4631-AC4F-A3F971358385}</ProjectGuid>
-    <RootNamespace>Library</RootNamespace>
+    <ProjectGuid>{60055510-0EA1-4292-8B33-893A7ED128BB}</ProjectGuid>
+    <RootNamespace>Packer</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>Packer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -68,7 +69,22 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\Intermediate\Packer\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -118,6 +134,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AstBuilder.cpp" />
+    <ClCompile Include="AstMemory.cpp" />
+    <ClCompile Include="Module.cpp" />
+    <ClCompile Include="NumLit.cpp" />
+    <ClCompile Include="Out.cpp" />
+    <ClCompile Include="pack-asmjs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AstBuilder.h" />
+    <ClInclude Include="AstMemory.h" />
+    <ClInclude Include="Module.h" />
+    <ClInclude Include="NumLit.h" />
+    <ClInclude Include="Out.h" />
+    <ClInclude Include="pack-asmjs.h" />
+    <ClInclude Include="Packer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cashew\Cashew.vcxproj">
+      <Project>{ac7cefae-4e50-4aed-ae24-b7ee924e0b1f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Library\Library.vcxproj">
+      <Project>{5aeaf62b-3698-4631-ac4f-a3f971358385}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
