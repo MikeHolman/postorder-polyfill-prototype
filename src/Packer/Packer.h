@@ -16,3 +16,5 @@ namespace asmjs
 #include "Module.h"
 #include "NumLit.h"
 #include "AstBuilder.h"
+#include "AstAnalyzer.h"
+#include "AstEncoder.h"
