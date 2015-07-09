@@ -680,8 +680,4 @@ namespace asmjs
         AstNodePtr(AstNode* ptr = nullptr) : ptr(ptr) {}
         operator AstNode*() const { return ptr; }
     };
-
-    bool is_double_coerced_call(const PrefixNode& prefix);
-
-    bool is_int_coerced_call(const BinaryNode& binary);
 }

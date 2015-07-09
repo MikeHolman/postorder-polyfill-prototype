@@ -134,7 +134,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AstAnalyzer.cpp" />
     <ClCompile Include="AstBuilder.cpp" />
+    <ClCompile Include="AstEncoder.cpp" />
     <ClCompile Include="AstMemory.cpp" />
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="NumLit.cpp" />
@@ -142,7 +144,9 @@
     <ClCompile Include="pack-asmjs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AstAnalyzer.h" />
     <ClInclude Include="AstBuilder.h" />
+    <ClInclude Include="AstEncoder.h" />
     <ClInclude Include="AstMemory.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="NumLit.h" />
